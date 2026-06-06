@@ -1,0 +1,29 @@
+# 1. 检查系统版本与内核 (需为64位，内核≥3.10)
+uname -r && uname -m
+# 2. 备份原有YUM源配置
+sudo mv /etc/yum.repos.d/CentOS-Base.repo /etc/yum.repos.d/CentOS-Base.repo.bak
+# 3. 下载阿里云 CentOS 7 Vault 镜像源配置文件
+sudo curl -o /etc/yum.repos.d/CentOS-Base.repo https://mirrors.aliyun.com/repo/Centos-7.repo
+# 4. 清理并重建YUM缓存
+sudo yum clean all && sudo yum makecache
+
+# 卸载旧版本：为了避免冲突，先移除所有已安装的 Docker 相关软件包
+sudo yum remove docker docker-client docker-client-latest docker-common docker-latest docker-latest-logrotate docker-logrotate docker-engine docker-selinux
+
+# 安装依赖：安装 yum-utils 以及存储驱动依赖包。
+sudo yum install -y yum-utils device-mapper-persistent-data lvm2
+
+# 添加 Docker CE 仓库：推荐使用阿里云镜像，能有效提升下载速度与稳定性。
+sudo yum-config-manager --add-repo http://mirrors.aliyun.com/docker-ce/linux/centos/docker-ce.repo
+
+# 正式安装 Docker CE：安装 Docker 引擎、命令行工具和容器运行时。
+sudo yum install -y docker-ce docker-ce-cli containerd.io
+
+
+
+# 1. 启动 Docker 服务
+sudo systemctl start docker
+# 2. 设置 Docker 开机自启
+sudo systemctl enable docker
+# 3. 检查 Docker 状态
+sudo systemctl status docker

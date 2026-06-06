@@ -1,0 +1,300 @@
+{
+  "name": "My workflow",
+  "nodes": [
+    {
+      "parameters": {
+        "url": "https://hnrss.org/newest?points=5",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.rssFeedRead",
+      "typeVersion": 1.2,
+      "position": [
+        32,
+        -64
+      ],
+      "id": "fffa827c-134a-46d5-8940-4fc06249b66b",
+      "name": "RSS Read"
+    },
+    {
+      "parameters": {
+        "resource": "Default",
+        "operation": "Scrape A Url And Get Its Content",
+        "url": "={{ $json.link }}",
+        "requestOptions": {}
+      },
+      "type": "n8n-nodes-firecrawl.fireCrawl",
+      "typeVersion": 1,
+      "position": [
+        448,
+        -64
+      ],
+      "id": "7630f3ee-c20f-4786-b6c3-2be7bc0ad0fc",
+      "name": "Scrape A Url And Get Its Content",
+      "credentials": {
+        "fireCrawlApi": {
+          "id": "FIYYpxuyPiy1tzA8",
+          "name": "FireCrawl account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "maxItems": 3
+      },
+      "type": "n8n-nodes-base.limit",
+      "typeVersion": 1,
+      "position": [
+        240,
+        -64
+      ],
+      "id": "312ac8c3-e3ee-465a-ae1e-90528d8edbf9",
+      "name": "Limit"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $json.data }}",
+        "options": {
+          "systemMessage": "你是一个新闻助手，我需要你把从网站上爬取的数据，做成一个新闻简报"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        640,
+        -64
+      ],
+      "id": "fc603a78-a987-42e8-a82f-d5d03104678e",
+      "name": "AI Agent"
+    },
+    {
+      "parameters": {
+        "model": "deepseek-v4-pro",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatDeepSeek",
+      "typeVersion": 1,
+      "position": [
+        496,
+        144
+      ],
+      "id": "d25d84c9-13c7-4e02-a35f-7668e94645a6",
+      "name": "DeepSeek Chat Model",
+      "credentials": {
+        "deepSeekApi": {
+          "id": "WKxqORcL6oLrWAtJ",
+          "name": "DeepSeek account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "fieldsToAggregate": {
+          "fieldToAggregate": [
+            {
+              "fieldToAggregate": "output"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.aggregate",
+      "typeVersion": 1,
+      "position": [
+        992,
+        -64
+      ],
+      "id": "aba4547a-ab84-458b-9649-2b6296592945",
+      "name": "Aggregate"
+    },
+    {
+      "parameters": {
+        "mode": "markdownToHtml",
+        "markdown": "={{ $json.output.join(\"\\n\\n\") }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.markdown",
+      "typeVersion": 1,
+      "position": [
+        1200,
+        -64
+      ],
+      "id": "8e6e5d71-db45-43e7-a580-0bc61bdb2f05",
+      "name": "Markdown"
+    },
+    {
+      "parameters": {
+        "fromEmail": "2928794051@qq.com",
+        "toEmail": "liusongsheng21@gmail.com",
+        "subject": "每日新闻简报",
+        "html": "={{ $json.data }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.emailSend",
+      "typeVersion": 2.1,
+      "position": [
+        1408,
+        -64
+      ],
+      "id": "5077539a-32e3-443a-bd0a-132e7ba18ad6",
+      "name": "Send an Email",
+      "webhookId": "f6a8eebc-4274-4f36-90f9-dd10cd54fb9e",
+      "credentials": {
+        "smtp": {
+          "id": "qsk7gf8bcWht7vYr",
+          "name": "SMTP account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "triggerAtHour": 7
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.3,
+      "position": [
+        -192,
+        -64
+      ],
+      "id": "6fe526d0-f505-4c46-adc8-121a1cb861ce",
+      "name": "Schedule Trigger"
+    }
+  ],
+  "pinData": {
+    "AI Agent": [
+      {
+        "json": {
+          "output": "根据从 Ars Technica 抓取的信息，为您整理如下新闻简报：\n\n---\n\n**新闻简报**\n**日期：** 2026年6月6日\n**来源：** Ars Technica（科技政策板块）\n\n**标题：标普500拒绝SpaceX快速纳入，并向OpenAI、Anthropic等不盈利AI公司关上门**\n\n**核心内容：**\n标普道琼斯指数公司已正式拒绝为SpaceX提供快速进入标普500指数的特殊通道，同时明确表示不会因其“不盈利”状态而给予OpenAI、Anthropic等人工智能初创公司豁免权。这意味着这些高估值非上市公司将无法轻松获得来自被动投资者（如指数基金）的数十亿美元资金流入。\n\n**关键要点：**\n- SpaceX曾申请绕过某些标普500成分股常规准入规则，但遭到标普指数委员会否决。\n- OpenAI与Anthropic等AI企业同样因不满足盈利能力要求，被阻挡在指数门槛之外。\n- 这一决定反映出标普500对“非盈利公司”上市准入政策的延续，未因行业热度或特殊身份而放宽标准。\n- 对于依赖被动投资资金流的公司而言，缺席标普500将影响其融资和估值。\n\n**作者：** Jeremy Hsu\n**发布时间：** 美东时间2026年6月5日14:45"
+        },
+        "pairedItem": {
+          "item": 0
+        }
+      },
+      {
+        "json": {
+          "output": "**Python新闻简报**\n\n**标题：** Python指导委员会就CPython JIT项目发表声明  \n\n**时间：** 2026年6月5日  \n\n**来源：** Discussions on Python.org  \n\n**摘要：**  \nPython指导委员会发布公告，回顾了CPython主线中实验性即时编译器（JIT）的进展，对多年投入的核心开发者与贡献者表达了感谢。委员会指出，该技术工作深入且细致，近期的性能提升真实且令人鼓舞。声明并未批评现有成果，而是探讨了该项目未来的发展路径。  \n\n**要点：**  \n- 过去几年，多名核心开发者在CPython主线中构建了一个JIT编译器。  \n- 委员会首先致谢参与者，肯定其艰难而严谨的技术贡献。  \n- 性能改进已经显现，委员会对此予以认可。  \n- 公告旨在讨论“我们认为它应采取的路径”，暗示未来方向可能调整或重新聚焦。  \n\n**原文链接：** [An announcement from the Steering Council regarding the JIT project](https://discuss.python.org/t/an-announcement-from-the-steering-council-regarding-the-jit-project/107638)"
+        },
+        "pairedItem": {
+          "item": 1
+        }
+      },
+      {
+        "json": {
+          "output": "根据提供的元数据，为您整理新闻简报如下：\n\n---\n\n**新闻简报**\n\n**标题**：谷歌云部门低调裁员，波及网络安全团队  \n**来源**：Business Insider（商业内幕）  \n**作者**：Charles Rollet  \n**发布日期**：2026年6月4日 22:38 UTC  \n**摘要**：  \n谷歌已在其云业务的多个部门进行裁员，其中包括一支精锐的网络安全情报团队。此次裁员行动进行得较为低调，涉及范围包括云业务下的部分岗位。报道指出，这是谷歌在科技行业持续调整人力背景下采取的最新举措。  \n**关键词**：谷歌、云计算、裁员、网络安全、人工智能、科技巨头  \n**原文链接**：https://www.businessinsider.com/google-clouds-quiet-layoffs-hit-cybersecurity-teams-2026-6"
+        },
+        "pairedItem": {
+          "item": 2
+        }
+      }
+    ]
+  },
+  "connections": {
+    "RSS Read": {
+      "main": [
+        [
+          {
+            "node": "Limit",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Limit": {
+      "main": [
+        [
+          {
+            "node": "Scrape A Url And Get Its Content",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Scrape A Url And Get Its Content": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "DeepSeek Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent": {
+      "main": [
+        [
+          {
+            "node": "Aggregate",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Aggregate": {
+      "main": [
+        [
+          {
+            "node": "Markdown",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Markdown": {
+      "main": [
+        [
+          {
+            "node": "Send an Email",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Schedule Trigger": {
+      "main": [
+        [
+          {
+            "node": "RSS Read",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "6a016c03-bf7d-4ceb-a539-419dc71371f6",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "1d25794ee3735d5dd797f44b37993c344f8d4d53b954a8bc6ef36385c5c30a65"
+  },
+  "nodeGroups": [],
+  "id": "RtIdEIyhFETJc0cb",
+  "tags": []
+}
